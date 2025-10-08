@@ -11,32 +11,41 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-lg p-8 bg-white shadow-xl rounded-xl">
-        <h1 class="text-3xl font-bold text-center text-blue-600 mb-6">Create Dictionary Entry</h1>
+    <div class="w-full max-w-lg">
+        <a href="../index.html" class="flex items-center text-blue-600 hover:text-blue-800 mb-4 transition duration-150 font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Home
+        </a>
         
-        <form id="storeForm" class="space-y-4">
-            <div>
-                <label for="wordInput" class="block text-sm font-medium text-gray-700 mb-1">Word (Letters & Spaces Only):</label>
-                <input type="text" id="wordInput" required placeholder="Enter the word (e.g., theory)"
-                    oninput="filterText(event)"
-                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150">
+        <div class="p-8 bg-white shadow-xl rounded-xl">
+            <h1 class="text-3xl font-bold text-center text-blue-600 mb-6">Create Dictionary Entry</h1>
+            
+            <form id="storeForm" class="space-y-4">
+                <div>
+                    <label for="wordInput" class="block text-sm font-medium text-gray-700 mb-1">Word (Letters & Spaces Only):</label>
+                    <input type="text" id="wordInput" required placeholder="Enter the word (e.g., theory)"
+                        oninput="filterText(event)"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150">
+                </div>
+
+                <div>
+                    <label for="definitionArea" class="block text-sm font-medium text-gray-700 mb-1">Definition (Letters & Spaces Only):</label>
+                    <textarea id="definitionArea" required placeholder="Enter the definition here."
+                        oninput="filterText(event)"
+                        class="w-full p-3 border border-gray-300 rounded-lg h-32 resize-y focus:ring-blue-500 focus:border-blue-500 transition duration-150"></textarea>
+                </div>
+
+                <button type="submit"
+                        class="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200 shadow-md">
+                    Submit Definition
+                </button>
+            </form>
+
+            <div id="feedback" class="mt-6 p-4 rounded-lg border text-sm text-gray-800 transition duration-300">
+                Feedback will appear here after submission.
             </div>
-
-            <div>
-                <label for="definitionArea" class="block text-sm font-medium text-gray-700 mb-1">Definition (Letters & Spaces Only):</label>
-                <textarea id="definitionArea" required placeholder="Enter the definition here."
-                    oninput="filterText(event)"
-                    class="w-full p-3 border border-gray-300 rounded-lg h-32 resize-y focus:ring-blue-500 focus:border-blue-500 transition duration-150"></textarea>
-            </div>
-
-            <button type="submit"
-                    class="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200 shadow-md">
-                Submit Definition
-            </button>
-        </form>
-
-        <div id="feedback" class="mt-6 p-4 rounded-lg border text-sm text-gray-800 transition duration-300">
-            Feedback will appear here after submission.
         </div>
     </div>
 
@@ -72,19 +81,21 @@
                 return;
             }
 
+            const API_BASE_URL = "https://comp4537lab45.onrender.com";
+            
+            const targetUrl = `${API_BASE_URL}/api/definitions/`; 
+
             try {
-                const response = await fetch('/store', {
+                const response = await fetch(targetUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ word, definition })
                 });
 
                 const data = await response.json();
                 
                 if (response.ok) {
-                    const successMessage = `Successfully stored ${word}: ${definition}`;
+                    const successMessage = `${data.message}`;
                     displayFeedback(true, successMessage);
                     wordInput.value = '';
                     definitionArea.value = '';
@@ -94,7 +105,7 @@
                 }
             } catch (error) {
                 console.error('Fetch error:', error);
-                displayFeedback(false, `Network Error: Could not reach the proxy server on port 8080.`);
+                displayFeedback(false, `Network Error: Could not reach the API server on port 10000.`);
             }
         });
 

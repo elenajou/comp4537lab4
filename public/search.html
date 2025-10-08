@@ -11,21 +11,31 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex items-start pt-16 justify-center p-4 font-sans">
-    <div class="w-full max-w-lg p-8 bg-white shadow-xl rounded-xl">
-        <h1 class="text-3xl font-bold text-center text-green-600 mb-6">Search Dictionary</h1>
+    <div class="w-full max-w-lg">
+        
+        <a href="../index.html" class="flex items-center text-green-600 hover:text-green-800 mb-4 transition duration-150 font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Home
+        </a>
 
-        <form id="searchForm" class="flex space-x-4 mb-6">
-            <input type="text" id="searchInput" required placeholder="Enter the word to search (letters and spaces only)"
-                oninput="filterText(event)"
-                class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition duration-150">
-            <button type="submit"
-                    class="py-3 px-6 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-200 shadow-md">
-                Search
-            </button>
-        </form>
+        <div class="p-8 bg-white shadow-xl rounded-xl">
+            <h1 class="text-3xl font-bold text-center text-green-600 mb-6">Search Dictionary</h1>
 
-        <div id="responseArea" class="p-4 rounded-lg border-2 border-gray-300 min-h-[100px] transition duration-300 text-gray-700">
-            Search results will appear here.
+            <form id="searchForm" class="flex space-x-4 mb-6">
+                <input type="text" id="searchInput" required placeholder="Enter the word to search (letters and spaces only)"
+                    oninput="filterText(event)"
+                    class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition duration-150">
+                <button type="submit"
+                        class="py-3 px-6 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-200 shadow-md">
+                    Search
+                </button>
+            </form>
+
+            <div id="responseArea" class="p-4 rounded-lg border-2 border-gray-300 min-h-[100px] transition duration-300 text-gray-700">
+                Search results will appear here.
+            </div>
         </div>
     </div>
 
@@ -60,9 +70,12 @@
             }
 
             const encodedWord = encodeURIComponent(word);
+
+            const API_BASE_URL = "https://comp4537lab45.onrender.com";
+            const targetUrl = `${API_BASE_URL}/api/definitions/?word=${encodedWord}`;
             
             try {
-                const response = await fetch(`/search?word=${encodedWord}`);
+                const response = await fetch(targetUrl, { method: 'GET' });
                 const data = await response.json();
 
                 if (response.ok) {
@@ -76,7 +89,7 @@
                 }
             } catch (error) {
                 console.error('Fetch error:', error);
-                displayResponse(false, `Network Error: Could not connect to the proxy server on port 8080.`);
+                displayResponse(false, `Network Error: Could not connect to the API server on port 10000.`);
             }
         });
 
