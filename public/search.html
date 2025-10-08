@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Dictionary</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .found { border-color: #10b981; background-color: #f0fdf4; color: #065f46; } 
+        .not-found { border-color: #ef4444; background-color: #fef2f2; color: #b91c1c; } 
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-start pt-16 justify-center p-4 font-sans">
+    <div class="w-full max-w-lg p-8 bg-white shadow-xl rounded-xl">
+        <h1 class="text-3xl font-bold text-center text-green-600 mb-6">Search Dictionary</h1>
+
+        <form id="searchForm" class="flex space-x-4 mb-6">
+            <input type="text" id="searchInput" required placeholder="Enter the word to search (letters and spaces only)"
+                oninput="filterText(event)"
+                class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition duration-150">
+            <button type="submit"
+                    class="py-3 px-6 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-200 shadow-md">
+                Search
+            </button>
+        </form>
+
+        <div id="responseArea" class="p-4 rounded-lg border-2 border-gray-300 min-h-[100px] transition duration-300 text-gray-700">
+            Search results will appear here.
+        </div>
+    </div>
+
+    <script>
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+        const responseArea = document.getElementById('responseArea');
+
+        function filterText(event) {
+            const regex = /[^a-zA-Z\s]/g;
+            event.target.value = event.target.value.replace(regex, '');
+        }
+
+        function isValidClientInput(str) {
+            if (typeof str !== 'string') return false;
+            const trimmed = str.trim();
+            if (trimmed.length === 0) return false;
+            
+            const textRegex = /^[a-zA-Z\s]+$/; 
+
+            return textRegex.test(trimmed);
+        }
+
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const word = searchInput.value;
+
+            if (!isValidClientInput(word)) {
+                displayResponse(false, "Client Error: Search term must contain only letters and spaces. Numbers and special characters are not allowed.");
+                return;
+            }
+
+            const encodedWord = encodeURIComponent(word);
+            
+            try {
+                const response = await fetch(`/search?word=${encodedWord}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    const output = 
+                        `Word Found: ${data.word}\n\n` +
+                        `Definition:\n${data.definition}\n\n` +
+                        `(Request ID: ${data.requestNumber})`;
+                    displayResponse(true, output);
+                } else {
+                    displayResponse(false, data.message);
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                displayResponse(false, `Network Error: Could not connect to the proxy server on port 8080.`);
+            }
+        });
+
+        function displayResponse(isFound, content) {
+            responseArea.className = `p-4 rounded-lg border-2 min-h-[100px] transition duration-300 text-gray-700 whitespace-pre-wrap ${isFound ? 'found' : 'not-found'}`;
+            responseArea.textContent = content;
+        }
+    </script>
+</body>
+</html>

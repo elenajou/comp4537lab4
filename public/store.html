@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Word Definition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .success { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .failure { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-lg p-8 bg-white shadow-xl rounded-xl">
+        <h1 class="text-3xl font-bold text-center text-blue-600 mb-6">Create Dictionary Entry</h1>
+        
+        <form id="storeForm" class="space-y-4">
+            <div>
+                <label for="wordInput" class="block text-sm font-medium text-gray-700 mb-1">Word (Letters & Spaces Only):</label>
+                <input type="text" id="wordInput" required placeholder="Enter the word (e.g., theory)"
+                    oninput="filterText(event)"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150">
+            </div>
+
+            <div>
+                <label for="definitionArea" class="block text-sm font-medium text-gray-700 mb-1">Definition (Letters & Spaces Only):</label>
+                <textarea id="definitionArea" required placeholder="Enter the definition here."
+                    oninput="filterText(event)"
+                    class="w-full p-3 border border-gray-300 rounded-lg h-32 resize-y focus:ring-blue-500 focus:border-blue-500 transition duration-150"></textarea>
+            </div>
+
+            <button type="submit"
+                    class="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200 shadow-md">
+                Submit Definition
+            </button>
+        </form>
+
+        <div id="feedback" class="mt-6 p-4 rounded-lg border text-sm text-gray-800 transition duration-300">
+            Feedback will appear here after submission.
+        </div>
+    </div>
+
+    <script>
+        const storeForm = document.getElementById('storeForm');
+        const wordInput = document.getElementById('wordInput');
+        const definitionArea = document.getElementById('definitionArea');
+        const feedbackDiv = document.getElementById('feedback');
+
+        function filterText(event) {
+            const regex = /[^a-zA-Z\s]/g;
+            event.target.value = event.target.value.replace(regex, '');
+        }
+
+        function isValidClientInput(str) {
+            if (typeof str !== 'string') return false;
+            const trimmed = str.trim();
+            if (trimmed.length === 0) return false;
+            
+            const textRegex = /^[a-zA-Z\s]+$/; 
+
+            return textRegex.test(trimmed);
+        }
+
+        storeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const word = wordInput.value;
+            const definition = definitionArea.value;
+
+            if (!isValidClientInput(word) || !isValidClientInput(definition)) {
+                displayFeedback(false, "Client Error: Both fields must contain **only letters and spaces**.");
+                return;
+            }
+
+            try {
+                const response = await fetch('/store', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ word, definition })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const successMessage = `Successfully stored ${word}: ${definition}`;
+                    displayFeedback(true, successMessage);
+                    wordInput.value = '';
+                    definitionArea.value = '';
+                    
+                } else {
+                    displayFeedback(false, data.message);
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                displayFeedback(false, `Network Error: Could not reach the proxy server on port 8080.`);
+            }
+        });
+
+        function displayFeedback(isSuccess, message) {
+            feedbackDiv.className = isSuccess 
+                ? 'success mt-6 p-4 rounded-lg border text-sm' 
+                : 'failure mt-6 p-4 rounded-lg border text-sm';
+            feedbackDiv.innerHTML = `<strong>${isSuccess ? 'Success' : 'Failure'}</strong>: ${message}`;
+        }
+    </script>
+</body>
+</html>
